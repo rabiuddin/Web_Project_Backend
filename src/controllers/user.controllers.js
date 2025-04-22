@@ -1,19 +1,49 @@
 import { User } from "../models/user.model";
 import asyncHandler from '../utils/asyncHandler.js'
-
+import {ApiError} from '../utils/ApiError.js'
+import {ApiResponse} from '../utils/ApiResponse.js'
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const signUp = asyncHandler(async (req, res) => {
 
     //get username, email, password from req.body
+    const {username, email, password} = req.body
 
+    if(!username || !email || !password){
+        throw new ApiError(400, "Please provide all the fields")
+    }
     //get image from req.files
 
-    //check that if username or email exists previously or not
-
+    //check that if email exists previously or not
+    let foundUser = await User.findOne({email: email})
+    if(foundUser){
+        throw new ApiError(400, "Email already exists")
+    }
+    // check image
+    let profileImage = req.file?.profile[0]?.path 
+    if(!profileImage){
+        throw new ApiError(400, "Please provide a profile image")
+    }
+    // send profile image to cloudinary and get the url
+    const imageURL = await uploadOnCloudinary(profileImage)
+    if(!image){
+        throw new ApiError(500, "Error uploading image")
+    }
     //create a new User
+    const user = await User.create({
+        username: username,
+        email: email,
+        password: password,
+        profileImage: imageURL
+    })
 
+    const createdUser = await User.findByid(user._id)?.select(
+        "-password"
+    )
     //send 200
-
+    return res.status(200).json(
+        new ApiResponse(200, createdUser, "User created successfully")
+    )
 })
 
 
