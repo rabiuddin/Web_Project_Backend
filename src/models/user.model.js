@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
 const userSchema = mongoose.Schema(
   {
@@ -13,13 +13,23 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      enum: ["gmail.com", "yahoo.com", "outlook.com"],
-      validate: {
-        validator: function (v) {
-          return /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(v);
+      validate: [
+        {
+          validator: function (v) {
+            return /^[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,}$/.test(v);
+          },
+          message: (props) => `${props.value} is not a valid email!`,
         },
-        message: (props) => `${props.value} is not a valid email!`,
-      }, //validat function for checking the email syntax
+        {
+          validator: function (v) {
+            const allowedDomains = ["gmail.com", "yahoo.com", "outlook.com"];
+            const domain = v.split("@")[1];
+            return allowedDomains.includes(domain);
+          },
+          message: (props) =>
+            `Email domain must be gmail.com, yahoo.com, or outlook.com`,
+        },
+      ],
     },
     password: {
       type: String,
@@ -52,25 +62,22 @@ userSchema.methods.isCorrectPassword = async function (password) {
 };
 
 //Method to generate access token
-userSchema.methods.generateAccessToken = function(){
-    return jwt.sign(
-        {
-            //adding creds for the tokeno
-            id: this._id,
-            username: this.username,
-            password: this.password,
-            email: this.email,
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    {
+      //adding creds for the tokeno
+      id: this._id,
+      username: this.username,
+      password: this.password,
+      email: this.email,
+    },
+    //adding secret key for the token
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      //adding expiration time for the token
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+    }
+  );
+};
 
-        },
-        //adding secret key for the token
-        process.env.ACCESS_TOKEN_SECRET
-        ,
-        {
-            //adding expiration time for the token
-            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
-        }
-    )
-}
-
-
-export const User = mongoose.model("User", userSchema);   
+export const User = mongoose.model("User", userSchema);

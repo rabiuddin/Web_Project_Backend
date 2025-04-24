@@ -1,111 +1,114 @@
-import { User } from "../models/user.model";
-import asyncHandler from '../utils/asyncHandler.js'
-import {ApiError} from '../utils/ApiError.js'
-import {ApiResponse} from '../utils/ApiResponse.js'
+import { User } from "../models/user.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import bcrypt from "bcrypt";
+import ms from "ms";
+
+import jwt from "jsonwebtoken";
 
 const signUp = asyncHandler(async (req, res) => {
+  const { username, email, password } = req.body;
 
-    //get username, email, password from req.body
-    const {username, email, password} = req.body
+  if (!username || !email || !password) {
+    throw new ApiError(400, "Please provide all the fields");
+  }
 
-    if(!username || !email || !password){
-        throw new ApiError(400, "Please provide all the fields")
+  const foundUser = await User.findOne({ email });
+  if (foundUser) {
+    throw new ApiError(400, "Email already exists");
+  }
+  const foundUserByUsername = await User.findOne({ username });
+  if (foundUserByUsername) {
+    throw new ApiError(400, "Username already taken");
+  }
+  let profileImage;
+  if (req.file?.path) {
+    const imageURL = await uploadOnCloudinary(req.file.path);
+    if (!imageURL) {
+      throw new ApiError(500, "Error uploading image");
     }
-    //get image from req.files
+    profileImage = imageURL;
+  }
 
-    //check that if email exists previously or not
-    let foundUser = await User.findOne({email: email})
-    if(foundUser){
-        throw new ApiError(400, "Email already exists")
-    }
-    // check image
-    let profileImage = req.file?.profile[0]?.path 
-    if(!profileImage){
-        throw new ApiError(400, "Please provide a profile image")
-    }
-    // send profile image to cloudinary and get the url
-    const imageURL = await uploadOnCloudinary(profileImage)
-    if(!image){
-        throw new ApiError(500, "Error uploading image")
-    }
-    //create a new User
-    const user = await User.create({
-        username: username,
-        email: email,
-        password: password,
-        profileImage: imageURL
-    })
+  const user = await User.create({
+    username,
+    email,
+    password,
+    profileImage,
+  });
 
-    const createdUser = await User.findByid(user._id)?.select(
-        "-password"
-    )
-    //send 200
-    return res.status(200).json(
-        new ApiResponse(200, createdUser, "User created successfully")
-    )
-})
+  const createdUser = await User.findById(user._id).select("-password");
 
+  return res.status(200).json({
+    success: true,
+    message: "User Created in successfully",
+    user: createdUser,
+  });
+});
 
 const login = asyncHandler(async (req, res) => {
-    // get email and password from user
+  const { email, password } = req.body;
 
-    //validate email
+  if (!email || !password) {
+    throw new ApiError(400, "Please provide all the fields");
+  }
 
-    //find user 
+  const foundUser = await User.findOne({ email });
 
-    //check password
+  if (!foundUser) {
+    throw new ApiError(400, "Invalid credentials");
+  }
 
-    //generate access token
+  const isMatch = await bcrypt.compare(password, foundUser.password);
 
-    //store it in cookies 
+  if (!isMatch) {
+    throw new ApiError(400, "Invalid credentials");
+  }
 
-    //send 200
-})
+  const token = foundUser.generateAccessToken();
+
+  res.cookie("accessToken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: ms(process.env.ACCESS_TOKEN_EXPIRY),
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "User logged in successfully",
+    user: foundUser,
+  });
+});
 
 const logout = asyncHandler(async (req, res) => {
-    //get user id from the middleware 
+  //get user id from the middleware
+  //not necessary but validate the user
+  //set referesh token null   (optional)
+  //clear cookies
+  //send 200
+});
 
-    //not necessary but validate the user
+const generateAccessToken = asyncHandler(async (req, res) => {});
 
-    //set referesh token null   (optional)
-
-    //clear cookies
-
-    //send 200
-
-})
-
-const generateAccessToken = asyncHandler(async (req, res) => {
-
-})
-
-const generateRefreshToken = asyncHandler(async (req, res) => {
-
-}) 
+const generateRefreshToken = asyncHandler(async (req, res) => {});
 
 const changePassword = asyncHandler(async (req, res) => {
-    // get email and password and new password from req.body
-
-    //validate email 
-
-    //find the user against email
-
-    //check if password is correct 
-
-    //update the new password as password
-
-    //save the user 
-
-    //send 200
-})
-
+  // get email and password and new password from req.body
+  //validate email
+  //find the user against email
+  //check if password is correct
+  //update the new password as password
+  //save the user
+  //send 200
+});
 
 export {
-    signUp,
-    login,
-    logout,
-    generateAccessToken,
-    generateRefreshToken,
-    changePassword   
-}
+  signUp,
+  login,
+  logout,
+  generateAccessToken,
+  generateRefreshToken,
+  changePassword,
+};
