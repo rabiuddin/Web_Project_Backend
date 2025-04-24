@@ -81,12 +81,21 @@ const login = asyncHandler(async (req, res) => {
 
 const logout = asyncHandler(async (req, res) => {
   //get user id from the middleware
+  const id = req.user._id;
   //not necessary but validate the user
-  //set referesh token null   (optional)
+  const user = await User.findById(id);
+  if (!user) {
+    throw new ApiError(400, "User not found");
+  }
   //clear cookies
-  //send 200
+    const options = {
+        httpOnly: true,
+        secure:true
+    }
+    return res.status(200)
+    .clearCookie("accessToken",options)
+    .json(new ApiResponse(200, "Logout successful", {})); //send 200
 });
-
 const generateAccessToken = asyncHandler(async (req, res) => {});
 
 const generateRefreshToken = asyncHandler(async (req, res) => {});
