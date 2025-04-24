@@ -61,25 +61,22 @@ const login = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid credentials");
   }
 
-  const isMatch = await bcrypt.compare(password, foundUser.password);
+  const isMatch = foundUser.isCorrectPassword(password, foundUser.password);
+
 
   if (!isMatch) {
     throw new ApiError(400, "Invalid credentials");
   }
-
   const token = foundUser.generateAccessToken();
 
-  res.cookie("accessToken", token, {
+  const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: ms(process.env.ACCESS_TOKEN_EXPIRY),
-  });
+    secure:true
+  }
+  return res.status(200)
+  .cookie("accessToken",token,options)
+  .json(new ApiResponse(200, "Login successful", { user: foundUser })); 
 
-  return res.status(200).json({
-    success: true,
-    message: "User logged in successfully",
-    user: foundUser,
-  });
 });
 
 const logout = asyncHandler(async (req, res) => {
