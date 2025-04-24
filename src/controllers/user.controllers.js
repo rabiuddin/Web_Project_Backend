@@ -3,10 +3,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import bcrypt from "bcrypt";
-import ms from "ms";
-
-import jwt from "jsonwebtoken";
 
 const signUp = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
