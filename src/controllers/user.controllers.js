@@ -25,7 +25,7 @@ const signUp = asyncHandler(async (req, res) => {
     if (!imageURL) {
       throw new ApiError(500, "Error uploading image");
     }
-    profileImage = imageURL;
+    profileImage = imageURL.url; // Ensure the URL is extracted correctly
   }
 
   const user = await User.create({

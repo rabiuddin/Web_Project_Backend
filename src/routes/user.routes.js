@@ -7,12 +7,12 @@ import {
   generateAccessToken,
 } from "../controllers/user.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
 
-router.post("/signup", signUp);
+router.post("/signup", upload.single("profileImage"), signUp);
 router.post("/login", login);
-router.post("/access-token", generateAccessToken);
 router.post("/logout", verifyJWT, logout);
 router.post("/change-password", verifyJWT, changePassword);
 
