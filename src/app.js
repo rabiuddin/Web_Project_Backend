@@ -21,11 +21,10 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// 👇 Register your routes
 app.use("/api", authRoutes);
 
-app.listen(3000, () => {
-  console.log("Server is running at port : 3000");
+app.listen(8000, () => {
+  console.log("Server is running at port : 8000");
 });
 
 export { app };
