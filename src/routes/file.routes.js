@@ -6,3 +6,5 @@ const router = express.Router();
 
 router.delete("/:id",verifyJWT, deleteFile);
 router.patch("/:id",verifyJWT, updateFile);
+
+export default router;
