@@ -25,8 +25,4 @@ app.get("/", (req, res) => {
 app.use("/auth", userRoutes);
 app.use("/file", fileRoutes);
 
-app.listen(8000, () => {
-  console.log("Server is running at port : 8000");
-});
-
 export { app };

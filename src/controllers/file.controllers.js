@@ -2,15 +2,14 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { File } from "../models/file.model.js";
+import { MAX_FILES } from "../constants.js";
 
 const createFile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const noOfUserFiles = await File.countDocuments({ user: userId });
 
-  const fileLimit = process.env.NO_OF_FILES;
-
-  if (noOfUserFiles >= fileLimit) {
-    throw new ApiError(400, `You cannot save more than ${fileLimit}`);
+  if (noOfUserFiles >= MAX_FILES) {
+    throw new ApiError(400, `You cannot save more than ${MAX_FILES}`);
   }
 
   const newFile = await File.create({ user: userId });
