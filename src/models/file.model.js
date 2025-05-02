@@ -10,7 +10,12 @@ const fileSchema = mongoose.Schema(
     },
     name: {
       type: String,
-      default: "New File",
+      required: true,
+      unique: true,
+    },
+    extension: {
+      type: String,
+      required: true,
     },
     content: {
       type: String,
