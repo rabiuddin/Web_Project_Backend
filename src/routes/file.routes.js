@@ -1,5 +1,6 @@
-import { deleteFile } from "../controllers/file.controllers";
-import { verifyJWT } from "../middlewares/auth.middleware";
+import express from "express";
+import { deleteFile,updateFile } from "../controllers/file.controllers.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 

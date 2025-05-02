@@ -1,7 +1,8 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import userRoutes from "./routes/user.routes.js"; // Import your route file
+import userRoutes from "./routes/user.routes.js";
+import fileRoutes from './routes/file.routes.js'
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", userRoutes);
+app.use("/file", fileRoutes);
 
 app.listen(8000, () => {
   console.log("Server is running at port : 8000");
