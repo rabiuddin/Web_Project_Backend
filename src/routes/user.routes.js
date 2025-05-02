@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.post("/signup", upload.single("profileImage"), signUp);
 router.post("/login", login);
-router.post("/logout", verifyJWT, logout);
+router.post("/logout", logout);
 router.post("/change-password", verifyJWT, changePassword);
 
 export default router;
