@@ -57,40 +57,38 @@ const getAllFiles = asyncHandler(async (req, res) => {
 });
 
 
-const deleteFile = asyncHandler(async(req,res)=>{
-   
-    const fileId = req.params.id;
+const deleteFile = asyncHandler(async (req, res) => {
+  const fileId = req.params.id;
+  const userId = req.user._id;
 
-    const foundFile = await File.findById(fileId);
+  const deletedFile = await File.findOneAndDelete({ _id: fileId, user: userId });
 
-    if(!foundFile){
-        throw new ApiError(400,"File Not Found") 
-    }
-    const deletedFile = await File.findByIdAndDelete(fileId);
+  if (!deletedFile) {
+      throw new ApiError(400, "File Not Found");
+  }
 
-    if(!deletedFile){
-        throw new ApiError(400,"File Not Found")
-    }
-    return res.status(200).json(new ApiResponse(200,deletedFile,"File Deleted Successfully"))
+  return res.status(200).json(new ApiResponse(200, deletedFile, "File Deleted Successfully"));
+});
 
-})
 
-const updateFile = asyncHandler(async(req,res)=>{
-    const fileId = req.params.id;
-    const {name,content} = req.body;
 
-    const foundFile = await File.findById(fileId);
+const updateFile = asyncHandler(async (req, res) => {
+  const fileId = req.params.id;
+  const userId = req.user._id;
+  const { name, content } = req.body;
 
-    if(!foundFile){
-        throw new ApiError(400,"File Not Found") 
-    }
-    const updatedFile = await File.findByIdAndUpdate(fileId,{name,content},{new:true});
+  const updatedFile = await File.findOneAndUpdate(
+      { _id: fileId, user: userId },
+      { name, content },
+      { new: true }
+  );
 
-    if(!updatedFile){
-        throw new ApiError(400,"File Not Found")
-    }
-    return res.status(200).json(new ApiResponse(200,updatedFile,"File Updated Successfully"))
-})
+  if (!updatedFile) {
+      throw new ApiError(400, "File Not Found");
+  }
+
+  return res.status(200).json(new ApiResponse(200, updatedFile, "File Updated Successfully"));
+});
 
 
 export{
