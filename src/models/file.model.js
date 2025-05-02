@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { User } from "./user.model";
+import { User } from "./user.model.js";
 
 const fileSchema = mongoose.Schema(
   {
@@ -10,7 +10,12 @@ const fileSchema = mongoose.Schema(
     },
     name: {
       type: String,
-      default: "New File",
+      required: true,
+      unique: true,
+    },
+    extension: {
+      type: String,
+      required: true,
     },
     content: {
       type: String,
