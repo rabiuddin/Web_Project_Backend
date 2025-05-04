@@ -25,6 +25,7 @@ const createFile = asyncHandler(async (req, res) => {
     user: userId,
     name: fileName,
     extension: fileExtension,
+    content: req.body?.content || "",
   });
 
   return res
@@ -108,6 +109,8 @@ const executeFile = asyncHandler(async (req, res) => {
     throw new ApiError(404, "File Not Found");
   }
 
+  console.log("File found:", foundFile);
+
   const fileContent = foundFile.content;
   
   if (!fileContent || fileContent.trim() === "") {
@@ -116,12 +119,14 @@ const executeFile = asyncHandler(async (req, res) => {
 
   try {
     const isolatedEnvironment = new IsolatedVMWrapper(fileContent);
+    console.log("IsolatedVMWrapper initialized successfully");
     const finalResult = await isolatedEnvironment.run();
-    
+    console.log("Execution result:", finalResult);
     return res.status(200).json(
       new ApiResponse(200, finalResult, "File executed successfully")
     );
   } catch (error) {
+    console.error("Execution failed:", error.stack); // Log full stack trace
     throw new ApiError(500, `Execution error: ${error.message || "Unknown error during execution"}`);
   }
 
