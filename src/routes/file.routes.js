@@ -6,6 +6,7 @@ import {
   getAllFiles,
   deleteFile,
   updateFile,
+  executeFile
 } from "../controllers/file.controllers.js";
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.get("", verifyJWT, getAllFiles);
 router.get("/:id", verifyJWT, getOneFile);
 router.delete("/:id",verifyJWT, deleteFile);
 router.patch("/:id",verifyJWT, updateFile);
+router.post("/execute/:id",verifyJWT, executeFile);
 
 export default router;
