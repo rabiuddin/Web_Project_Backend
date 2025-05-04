@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import jwt from "jsonwebtoken";
 
 const signUp = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -11,23 +12,25 @@ const signUp = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide all the fields");
   }
 
-  const foundUser = await User.findOne({ email });
-  if (foundUser) {
+  // Check for duplicate email or username
+  if (await User.findOne({ email })) {
     throw new ApiError(400, "Email already exists");
   }
-  const foundUserByUsername = await User.findOne({ username });
-  if (foundUserByUsername) {
+  if (await User.findOne({ username })) {
     throw new ApiError(400, "Username already taken");
   }
+
+  // Handle optional profile image upload
   let profileImage;
   if (req.file?.path) {
     const imageURL = await uploadOnCloudinary(req.file.path);
     if (!imageURL) {
       throw new ApiError(500, "Error uploading image");
     }
-    profileImage = imageURL.url; // Ensure the URL is extracted correctly
+    profileImage = imageURL.url;
   }
 
+  // Create the user
   const user = await User.create({
     username,
     email,
@@ -35,12 +38,22 @@ const signUp = asyncHandler(async (req, res) => {
     profileImage,
   });
 
+  // Exclude password from returned user
   const createdUser = await User.findById(user._id).select("-password");
 
-  return res.status(200).json({
+  // Generate JWT access token
+  const token = jwt.sign(
+    { userId: createdUser._id, username: createdUser.username },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+  );
+
+  // Return user + token
+  return res.status(201).json({
     success: true,
-    message: "User Created in successfully",
+    message: "User created successfully",
     user: createdUser,
+    accessToken: token,
   });
 });
 
@@ -51,27 +64,51 @@ const login = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please provide all the fields");
   }
 
-  const foundUser = await User.findOne({ email });
-
+  // 1) Find the user
+  const foundUser = await User.findOne({ email }).select("+password");
   if (!foundUser) {
     throw new ApiError(400, "Invalid credentials");
   }
 
-  const isMatch = foundUser.isCorrectPassword(password, foundUser.password);
-
+  // 2) Check password
+  const isMatch = await foundUser.isCorrectPassword(
+    password,
+    foundUser.password
+  );
   if (!isMatch) {
     throw new ApiError(400, "Invalid credentials");
   }
-  const token = foundUser.generateAccessToken();
 
-  const options = {
+  // 3) Generate token
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new ApiError(500, "JWT_SECRET is not defined in environment");
+  }
+  const token = jwt.sign(
+    { userId: foundUser._id, username: foundUser.username },
+    secret,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+  );
+
+  // 4) Prepare cookie options
+  const cookieOptions = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+    maxAge: 1000 * 60 * 60, // 1 hour
   };
-  return res
-    .status(200)
-    .cookie("accessToken", token, options)
-    .json(new ApiResponse(200, "Login successful", { user: foundUser }));
+
+  // 5) Remove password before sending user object
+  const userToReturn = foundUser.toObject();
+  delete userToReturn.password;
+
+  // 6) Send cookie + JSON
+  return res.status(200).cookie("accessToken", token, cookieOptions).json({
+    success: true,
+    message: "Login successful",
+    accessToken: token,
+    user: userToReturn,
+  });
 });
 
 const logout = asyncHandler(async (req, res) => {
