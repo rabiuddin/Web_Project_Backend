@@ -35,12 +35,10 @@ const signUp = asyncHandler(async (req, res) => {
     profileImage,
   });
 
-  const createdUser = await User.findById(user._id).select("-password");
-
   return res.status(200).json({
     success: true,
     message: "User Created in successfully",
-    user: createdUser,
+    data: user,
   });
 });
 
@@ -68,10 +66,11 @@ const login = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
+
   return res
     .status(200)
     .cookie("accessToken", token, options)
-    .json(new ApiResponse(200, "Login successful", { user: foundUser }));
+    .json(new ApiResponse(200, foundUser, "Login successful"));
 });
 
 const logout = asyncHandler(async (req, res) => {

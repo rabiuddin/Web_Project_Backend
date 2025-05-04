@@ -80,4 +80,12 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
+// Exclude username always when converted to json
+userSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    delete ret.password;
+    return ret;
+  },
+});
+
 export const User = mongoose.model("User", userSchema);
