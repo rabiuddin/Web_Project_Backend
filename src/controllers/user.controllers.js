@@ -42,11 +42,15 @@ const signUp = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  return res.status(200).cookie("accessToken", token, options).json({
-    success: true,
-    message: "User Created in successfully",
-    data: user,
-  });
+  return res
+    .status(200)
+    .cookie("accessToken", token, options)
+    .json(
+      ApiResponse.Builder.statusCode(200)
+        .data(user)
+        .message("User created successfully")
+        .build()
+    );
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -77,7 +81,12 @@ const login = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .cookie("accessToken", token, options)
-    .json(new ApiResponse(200, foundUser, "Login successful"));
+    .json(
+      ApiResponse.Builder.statusCode(200)
+        .data(foundUser)
+        .message("Logged In successfully")
+        .build()
+    );
 });
 
 const logout = asyncHandler(async (req, res) => {
@@ -129,6 +138,19 @@ const updateUser = asyncHandler(async (req, res) => {
     );
 });
 
+const getUser = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  return res
+    .status(200)
+    .json(
+      ApiResponse.Builder.statusCode(200)
+        .data(user)
+        .message("User Fetched successfully")
+        .build()
+    );
+});
+
 const generateAccessToken = asyncHandler(async (req, res) => {});
 
 const generateRefreshToken = asyncHandler(async (req, res) => {});
@@ -151,4 +173,5 @@ export {
   generateRefreshToken,
   changePassword,
   updateUser,
+  getUser,
 };
