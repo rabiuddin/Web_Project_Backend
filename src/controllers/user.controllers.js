@@ -35,7 +35,14 @@ const signUp = asyncHandler(async (req, res) => {
     profileImage,
   });
 
-  return res.status(200).json({
+  const token = user.generateAccessToken();
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res.status(200).cookie("accessToken", token, options).json({
     success: true,
     message: "User Created in successfully",
     data: user,
