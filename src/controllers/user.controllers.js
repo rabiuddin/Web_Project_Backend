@@ -35,13 +35,22 @@ const signUp = asyncHandler(async (req, res) => {
     profileImage,
   });
 
-  const createdUser = await User.findById(user._id).select("-password");
+  const token = user.generateAccessToken();
 
-  return res.status(200).json({
-    success: true,
-    message: "User Created in successfully",
-    user: createdUser,
-  });
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", token, options)
+    .json(
+      ApiResponse.Builder.statusCode(200)
+        .data(user)
+        .message("User created successfully")
+        .build()
+    );
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -59,7 +68,6 @@ const login = asyncHandler(async (req, res) => {
 
   const isMatch = foundUser.isCorrectPassword(password, foundUser.password);
 
-
   if (!isMatch) {
     throw new ApiError(400, "Invalid credentials");
   }
@@ -67,12 +75,18 @@ const login = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure:true
-  }
-  return res.status(200)
-  .cookie("accessToken",token,options)
-  .json(new ApiResponse(200, "Login successful", { user: foundUser })); 
+    secure: true,
+  };
 
+  return res
+    .status(200)
+    .cookie("accessToken", token, options)
+    .json(
+      ApiResponse.Builder.statusCode(200)
+        .data(foundUser)
+        .message("Logged In successfully")
+        .build()
+    );
 });
 
 const logout = asyncHandler(async (req, res) => {
@@ -84,14 +98,59 @@ const logout = asyncHandler(async (req, res) => {
     throw new ApiError(400, "User not found");
   }
   //clear cookies
-    const options = {
-        httpOnly: true,
-        secure:true
-    }
-    return res.status(200)
-    .clearCookie("accessToken",options)
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
     .json(new ApiResponse(200, "Logout successful", {})); //send 200
 });
+
+const updateUser = asyncHandler(async (req, res) => {
+  const id = req.body.userId;
+  const user = await User.findById(id);
+  if (!user) {
+    throw new ApiError(400, "User not found");
+  }
+
+  const { username, email } = req.body;
+  if (!username || !email) {
+    throw new ApiError(400, "Please provide all the fields");
+  }
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser && existingUser._id.toString() !== id.toString()) {
+    throw new ApiError(400, "Email already in use by another account");
+  }
+
+  user.username = username;
+  user.email = email;
+
+  await user.save();
+
+  const { password, ...updatedUser } = user.toObject();
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "User updated successfully", { user: updatedUser })
+    );
+});
+
+const getUser = asyncHandler(async (req, res) => {
+  const user = req.user;
+
+  return res
+    .status(200)
+    .json(
+      ApiResponse.Builder.statusCode(200)
+        .data(user)
+        .message("User Fetched successfully")
+        .build()
+    );
+});
+
 const generateAccessToken = asyncHandler(async (req, res) => {});
 
 const generateRefreshToken = asyncHandler(async (req, res) => {});
@@ -113,4 +172,6 @@ export {
   generateAccessToken,
   generateRefreshToken,
   changePassword,
+  updateUser,
+  getUser,
 };
