@@ -92,45 +92,7 @@ const updateFile = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, updatedFile, "File Updated Successfully"));
 });
 
-const executeFile = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const fileId = req.params.id;
 
-  if (!fileId) {
-    throw new ApiError(400, "File ID is required");
-  }
-
-  const foundFile = await File.findOne({
-    _id: fileId,
-    user: userId
-  });
-
-  if (!foundFile) {
-    throw new ApiError(404, "File Not Found");
-  }
-
-  console.log("File found:", foundFile);
-
-  const fileContent = foundFile.content;
-  
-  if (!fileContent || fileContent.trim() === "") {
-    throw new ApiError(400, "File content is empty");
-  }
-
-  try {
-    const isolatedEnvironment = new IsolatedVMWrapper(fileContent);
-    console.log("IsolatedVMWrapper initialized successfully");
-    const finalResult = await isolatedEnvironment.run();
-    console.log("Execution result:", finalResult);
-    return res.status(200).json(
-      new ApiResponse(200, finalResult, "File executed successfully")
-    );
-  } catch (error) {
-    console.error("Execution failed:", error.stack); // Log full stack trace
-    throw new ApiError(500, `Execution error: ${error.message || "Unknown error during execution"}`);
-  }
-
-});
 
 
 export{
@@ -138,6 +100,5 @@ export{
     updateFile,
     createFile,
     getOneFile,
-    getAllFiles,
-    executeFile
+    getAllFiles
 }
