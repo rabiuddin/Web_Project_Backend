@@ -5,7 +5,7 @@ import {
   getOneFile,
   getAllFiles,
   deleteFile,
-  updateFile,
+  updateFile
 } from "../controllers/file.controllers.js";
 
 const router = express.Router();

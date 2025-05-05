@@ -24,6 +24,8 @@ const createFile = asyncHandler(async (req, res) => {
     user: userId,
     name: fileName,
     extension: fileExtension,
+    content: req.body?.content || "",
+    language: req.body?.language || "javascript",
   });
 
   return res
@@ -89,6 +91,8 @@ const updateFile = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, updatedFile, "File Updated Successfully"));
 });
+
+
 
 
 export{

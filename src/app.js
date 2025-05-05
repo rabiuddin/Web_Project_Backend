@@ -5,6 +5,7 @@ import cors from "cors";
 import customMorgan from "./utils/morgan.js";
 import userRoutes from "./routes/user.routes.js"; // Import your route file
 import fileRoutes from "./routes/file.routes.js";
+import codeRoutes from "./routes/code.routes.js"
 
 
 const app = express();
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", userRoutes);
 app.use("/file", fileRoutes);
+app.use("/code",codeRoutes)
 
 app.listen(8000, () => {
   console.log("Server is running at port : 8000");
