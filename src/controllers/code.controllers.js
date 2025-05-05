@@ -26,7 +26,7 @@ const executeFile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "File content is empty");
   }
 
-  const result = await executeCode(fileContent, foundFile.name);
+  const result = await executeCode(fileContent, foundFile.name,foundFile.language);
   if (!result) {
     throw new ApiError(500, "Error executing code");
   }

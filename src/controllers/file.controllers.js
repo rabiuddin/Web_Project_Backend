@@ -25,6 +25,7 @@ const createFile = asyncHandler(async (req, res) => {
     name: fileName,
     extension: fileExtension,
     content: req.body?.content || "",
+    language: req.body?.language || "javascript",
   });
 
   return res
