@@ -1,8 +1,10 @@
-import { executeFile,analyzeFile } from "../controllers/code.controllers";
+import { executeFile,analyzeFile } from "../controllers/code.controllers.js";
 import express from "express";
-import { verifyToken } from "../middlewares/auth.middleware.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/execute/:id", verifyToken, executeFile);
-router.post("/analyze/:id", verifyToken, analyzeFile);
+router.post("/execute/:id", verifyJWT, executeFile);
+router.post("/analyze/:id", verifyJWT, analyzeFile);
+
+export default router;

@@ -1,8 +1,8 @@
-import asyncHandler from "express-async-handler";
-import ApiResponse from "../utils/ApiResponse.js";
-import ApiError from "../utils/ApiError.js";
-import File from "../models/file.model.js";
-import IsolatedVMWrapper from "../utils/isolatedVM.js";
+import {asyncHandler} from "../utils/asyncHandler.js";
+import {ApiResponse} from "../utils/ApiResponse.js";
+import {ApiError} from "../utils/ApiError.js";
+import {File} from "../models/file.model.js";
+import {IsolatedVMWrapper} from "../utils/isolatedVM.js";
 
 const executeFile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -32,10 +32,11 @@ const executeFile = asyncHandler(async (req, res) => {
   try {
     const isolatedEnvironment = new IsolatedVMWrapper(fileContent);
     console.log("IsolatedVMWrapper initialized successfully");
-    const finalResult = await isolatedEnvironment.run();
-    console.log("Execution result:", finalResult);
+    const { result, logs } = await isolatedEnvironment.run();
+    console.log("Execution result:", result);
+    console.log("Execution logs:", logs);
     return res.status(200).json(
-      new ApiResponse(200, finalResult, "File executed successfully")
+      new ApiResponse(200, { result, logs }, "File executed successfully")
     );
   } catch (error) {
     console.error("Execution failed:", error.stack); // Log full stack trace
