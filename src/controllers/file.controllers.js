@@ -3,7 +3,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { File } from "../models/file.model.js";
 import { MAX_FILES } from "../constants.js";
-import { IsolatedVMWrapper } from "../utils/isolatedVM.js";
 
 const createFile = asyncHandler(async (req, res) => {
   const userId = req.user._id;
