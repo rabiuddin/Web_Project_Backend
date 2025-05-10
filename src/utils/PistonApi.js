@@ -1,19 +1,18 @@
 import fetch from "node-fetch";
 
 const languageVersions = {
-  python: "3.10.0",  
+  python: "3.10.0",
   cpp: "10.2.0",
-  javascript: "18.15.0", 
-  go: "1.16.2",      
-  java: "15.0.2",        
-  rust: "1.68.2",    
+  javascript: "18.15.0",
+  go: "1.16.2",
+  java: "15.0.2",
+  rust: "1.68.2",
 };
 
-const executeCode = async (code, filename,language) => {
-try {
-
-  const languageVersion = languageVersions[language] || "latest";
-  console.log("Language version:", languageVersion);
+const executeCodeFromPiston = async (code, filename, language) => {
+  try {
+    const languageVersion = languageVersions[language] || "latest";
+    console.log("Language version:", languageVersion);
     const response = await fetch("https://emkc.org/api/v2/piston/execute", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -38,10 +37,10 @@ try {
     const result = await response.json();
 
     console.log("Execution result:", result);
-    return result
+    return result;
   } catch (error) {
     console.error("Execution error:", error);
   }
-}
+};
 
-export {executeCode}
+export { executeCodeFromPiston };

@@ -109,33 +109,55 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const id = req.body.userId;
-  const user = await User.findById(id);
-  if (!user) {
-    throw new ApiError(400, "User not found");
+  const user = req.user;
+
+  const oldPassword = req.body?.oldPassword;
+  const newPassword = req.body?.newPassword;
+  const profileImage = req.file;
+
+  // validate body
+  if (!profileImage && !(oldPassword && newPassword)) {
+    throw new ApiError(400, "No data provided to be updated");
   }
 
-  const { username, email } = req.body;
-  if (!username || !email) {
-    throw new ApiError(400, "Please provide all the fields");
+  // update password
+  if (oldPassword && newPassword) {
+    // check if incorrect old password
+    const isMatch = user.isCorrectPassword(oldPassword, user.password);
+
+    if (!isMatch) {
+      throw new ApiError(400, "Incorrect old password");
+    }
+
+    // check if newPassword is same as old
+    if (newPassword === oldPassword) {
+      throw new ApiError(
+        400,
+        "New Password can not be the same as old password"
+      );
+    }
+
+    // if correct than update password
+    user.password = newPassword;
+
+    await user.save();
   }
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser && existingUser._id.toString() !== id.toString()) {
-    throw new ApiError(400, "Email already in use by another account");
+  // update profile pic if sent
+  if (profileImage) {
+    const imageURL = await uploadOnCloudinary(profileImage.path);
+    if (!imageURL) {
+      throw new ApiError(500, "Error uploading image");
+    }
+    // setting image url to user
+    user.profileImage = imageURL.url;
+
+    await user.save();
   }
 
-  user.username = username;
-  user.email = email;
-
-  await user.save();
-
-  const { password, ...updatedUser } = user.toObject();
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, "User updated successfully", { user: updatedUser })
-    );
+    .json(new ApiResponse(200, "User updated successfully"));
 });
 
 const getUser = asyncHandler(async (req, res) => {
