@@ -2,16 +2,22 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { executeCodeFromPiston } from "../utils/PistonApi.js";
 import { ApiError } from "../utils/ApiError.js";
-import { ALLOWED_LANGUAGES, DEFAULT_LANGUAGE } from "../constants.js";
+import {
+  ALLOWED_ANALYSIS_LANGUAGES,
+  ALLOWED_EXECUTION_LANGUAGES,
+  DEFAULT_LANGUAGE,
+} from "../constants.js";
 import calculateJsCodeAnalysis from "../services/analyzer/JsAnalyzerService.js";
+import calculatePythonCodeAnalysis from "../services/analyzer/pythonAnalyzerService.js";
 
 const executeCode = asyncHandler(async (req, res) => {
   const { content, language = DEFAULT_LANGUAGE } = req.body;
 
-  if (!ALLOWED_LANGUAGES.includes(language)) {
+  if (!ALLOWED_EXECUTION_LANGUAGES.includes(language)) {
     throw new ApiError(
       400,
-      "Invalid or not allowed language, Allowed: " + ALLOWED_LANGUAGES
+      "Invalid or not allowed execution language, Allowed: " +
+        ALLOWED_EXECUTION_LANGUAGES
     );
   }
 
@@ -32,10 +38,11 @@ const executeCode = asyncHandler(async (req, res) => {
 const analyzeCode = asyncHandler(async (req, res) => {
   const { content, language = DEFAULT_LANGUAGE } = req.body;
 
-  if (!ALLOWED_LANGUAGES.includes(language)) {
+  if (!ALLOWED_ANALYSIS_LANGUAGES.includes(language)) {
     throw new ApiError(
       400,
-      "Invalid or not allowed language, Allowed: " + ALLOWED_LANGUAGES
+      "Invalid or not allowed analysis language, Allowed: " +
+        ALLOWED_ANALYSIS_LANGUAGES
     );
   }
 
@@ -48,6 +55,9 @@ const analyzeCode = asyncHandler(async (req, res) => {
   switch (language) {
     case "javascript":
       analysis = await calculateJsCodeAnalysis(content);
+      break;
+    case "python":
+      analysis = await calculatePythonCodeAnalysis(content);
       break;
     // more can be added here
     default:
