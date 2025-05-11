@@ -66,7 +66,10 @@ const login = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid credentials");
   }
 
-  const isMatch = foundUser.isCorrectPassword(password, foundUser.password);
+  const isMatch = await foundUser.isCorrectPassword(
+    password,
+    foundUser.password
+  );
 
   if (!isMatch) {
     throw new ApiError(400, "Invalid credentials");
@@ -123,7 +126,7 @@ const updateUser = asyncHandler(async (req, res) => {
   // update password
   if (oldPassword && newPassword) {
     // check if incorrect old password
-    const isMatch = user.isCorrectPassword(oldPassword, user.password);
+    const isMatch = await user.isCorrectPassword(oldPassword, user.password);
 
     if (!isMatch) {
       throw new ApiError(400, "Incorrect old password");
