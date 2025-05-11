@@ -21,7 +21,7 @@ router.put(
   upload.single("profileImage"),
   updateUser
 );
-router.post("/logout", logout);
+router.post("/logout",  verifyJWT,logout);
 router.post("/change-password", verifyJWT, changePassword);
 router.get("/user", verifyJWT, getUser);
 
