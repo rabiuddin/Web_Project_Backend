@@ -3,3 +3,4 @@ export const MAX_FILES = 10;
 export const ALLOWED_EXECUTION_LANGUAGES = ["javascript", "python"];
 export const ALLOWED_ANALYSIS_LANGUAGES = ["javascript"];
 export const DEFAULT_LANGUAGE = "javascript";
+export const ENABLE_GEMINI_SUGGESTIONS = true;

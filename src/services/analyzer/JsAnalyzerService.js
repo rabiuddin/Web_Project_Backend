@@ -3,6 +3,7 @@ import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
 import { ApiError } from "../../utils/ApiError.js";
 import { getResponseFromGemini } from "../gemini/geminiService.js";
+import { ENABLE_GEMINI_SUGGESTIONS } from "../../constants.js";
 
 const parseCode = (code) => {
   try {
@@ -192,10 +193,13 @@ const generateSuggestions = async (code) => {
 export default async function calculateJsCodeAnalysis(code) {
   // parsing code in to a tree
   const ast = parseCode(code);
+  console.log(ENABLE_GEMINI_SUGGESTIONS);
   return {
     timeComplexity: calculateTimeComplexity(ast),
     spaceComplexity: calculateSpaceComplexity(ast),
-    // suggestions: await generateSuggestions(code),
-    suggestions: [],
+
+    suggestions: ENABLE_GEMINI_SUGGESTIONS
+      ? await generateSuggestions(code)
+      : [],
   };
 }

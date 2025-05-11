@@ -1,6 +1,7 @@
 import { parse } from "python-ast";
 import { ApiError } from "../../utils/ApiError.js";
 import { getResponseFromGemini } from "../gemini/geminiService.js";
+import { ENABLE_GEMINI_SUGGESTIONS } from "../../constants.js";
 
 const parseCode = (code) => {
   try {
@@ -207,6 +208,8 @@ export default async function calculatePythonCodeAnalysis(code) {
   return {
     timeComplexity: calculateTimeComplexity(ast),
     spaceComplexity: calculateSpaceComplexity(ast),
-    suggestions: [],
+    suggestions: ENABLE_GEMINI_SUGGESTIONS
+      ? await generateSuggestions(code)
+      : [],
   };
 }
